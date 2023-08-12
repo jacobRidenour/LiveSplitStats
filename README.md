@@ -43,6 +43,8 @@ Graphs
 * Bar graph: possible time save in PB
 * Line graph: Run duration over time
 
+TODO: csv export
+
 # Dependencies
 
 matplotlib

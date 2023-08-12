@@ -43,17 +43,6 @@ Graphs
 * Bar graph: possible time save in PB
 * Line graph: Run duration over time
 
-# Ideas scratchpad
-* Represent PB as a line, show:
-    * Split time for each
-    * Duration of each segment
-    * Possible time save 
-    * similar to splits.io
-* Runs over time (y = runs finished duration x = attempt number)
-* Seconds of improvement (pie chart of worst-best for each segment)
-* CSV export
-    * Parsed segment information (time in seconds)
-
 # Dependencies
 
 matplotlib

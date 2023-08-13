@@ -37,6 +37,7 @@ class lss:
     category_name: str = ''
     layout_path: str = ''
     timer_offset: str = ''
+    output_dir: str = ''
     
     # attempts and completed runs
     runs_started: int = 0

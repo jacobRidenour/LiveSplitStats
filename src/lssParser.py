@@ -13,11 +13,12 @@ def open_lss_file(file_path):
 # reads the .lss file starting at the top of the tree,
 # stores retrieved values and calculated values in lss() data structure
 # data structure defined in lss.py 
-def read_lss_file(root):
+def read_lss_file(root, folder_path):
     split_file = lss()
     #split_file.segments = []
         
     # get basic info about the splits
+    split_file.output_dir = folder_path
     split_file.game_name = root.findtext('GameName', default='')
     split_file.category_name = root.findtext('CategoryName', default='')
     split_file.layout_path = root.findtext('LayoutPath', default='')
@@ -95,8 +96,12 @@ def read_lss_file(root):
         
         if not manual_gold:
             best_segment_date_time = get_attempt_date(current_segment.segment_gold.id, root)
-            current_segment.segment_gold.run_date = best_segment_date_time[0]
-            current_segment.segment_gold.run_time = best_segment_date_time[1]
+            if best_segment_date_time != '':
+                current_segment.segment_gold.run_date = best_segment_date_time[0]
+                current_segment.segment_gold.run_time = best_segment_date_time[1]
+            else:
+                current_segment.segment_gold.run_date = '?'
+                current_segment.segment_gold.run_time = '?'
         else:
             current_segment.segment_gold.run_date = '?'
             current_segment.segment_gold.run_time = '?'
@@ -112,13 +117,17 @@ def read_lss_file(root):
         current_segment.segment_worst.id = worst_segment_info[0]
         current_segment.segment_worst.time = worst_segment_info[1]
         worst_segment_date_time = get_attempt_date(current_segment.segment_worst.id, root)
-        current_segment.segment_worst.run_date = worst_segment_date_time[0]
-        current_segment.segment_worst.run_time = worst_segment_date_time[1]
+        if worst_segment_date_time != '':
+            current_segment.segment_worst.run_date = worst_segment_date_time[0]
+            current_segment.segment_worst.run_time = worst_segment_date_time[1]
+        else:
+            current_segment.segment_worst.run_date = '?'
+            current_segment.segment_worst.run_time = '?'
         
         # calculate segment statistics: average, median, standard deviation
-        current_segment.stats.average = get_average_time(segment_history)
-        current_segment.stats.median = get_median_time(segment_history)
-        current_segment.stats.stdev = get_std_dev(segment_history)
+        current_segment.stats.average = get_weighted_average_time(segment_history)
+        current_segment.stats.median = get_weighted_median_time(segment_history)
+        current_segment.stats.stdev = get_weighted_std_dev(segment_history)
                 
         # percentage of times segment was finished : total runs started
         current_segment.stats.finished_rate = get_percent_finished(split_file.runs_started, segment_history)

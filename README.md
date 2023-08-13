@@ -2,13 +2,12 @@
 
 Reports some information and statistics gleaned from [LiveSplit](http://livesplit.org/) split (.lss) files. Only accounts for RTA (for now).
 
-Once a file is read, you are presented with 4 options:
+Once a file is read, the script will:
 
-1. Print all the parsed information to the console
-2. Print all the parsed information to the console and a .txt file
-3. Display graphs showing various statistics (changes over time, segment times in PB ala splits.io)
-4. Export segment times (in seconds) to a .csv
-    * Option to include PB segment times, gold segment times, or both
+1. Create a folder in the parent directory of the script to store the results.
+2. Write all the parsed information to a .txt file
+3. Output graphs showing various statistics (std deviation, above average rate, segment duration over time)
+4. (TODO) Export segment times (in seconds) to a .csv
 
 Parsed information
 * Game Name
@@ -26,9 +25,9 @@ Segment information
 * Best time (gold), which attempt, on what date/time
 * Worst time, which attempt, on what date/time
 * Calculations:
-    * Average time
-    * Median time
-    * Standard deviation
+    * Average time (weighted)
+    * Median time (weighted)
+    * Standard deviation (weighted)
     * Percentage of runs that completed that segment
 
 Other information
@@ -43,12 +42,19 @@ Graphs
 * Bar graph: possible time save in PB
 * Line graph: Run duration over time
 
-TODO: csv export
-
 # Dependencies
 
-matplotlib
+matplotlib, numpy
 
 Installation:
 
-```pip install matplotlib```
+```pip install matplotlib numpy```
+
+# Usage
+
+Enter the path to your .lss file. The script will do the rest.
+
+# Known Issues
+
+Does not properly account for times when splits are skipped. Currently for segment graphs will filter segments that are >= 1.75x the average time for that segment (not good for short splits)
+Above average calculation probably needs adjustment.

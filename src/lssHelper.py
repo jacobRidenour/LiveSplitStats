@@ -4,6 +4,9 @@ from datetime import datetime
 from datetime import timedelta
 from math import sqrt
 
+# Dependencies
+import numpy as np
+
 # convert <SegmentHistory> into a dictionary with values <time id="number"> and <RealTime>
 def make_dictionary(segment_history_element):
     time_dict = {}
@@ -199,7 +202,7 @@ def get_above_average_rate(segment_history):
     if segment_history is None:
         return 0
     
-    average_time_seconds = time_to_seconds(get_average_time(segment_history))
+    average_time_seconds = time_to_seconds(get_weighted_average_time(segment_history))
     if not average_time_seconds:
         return 0
     
@@ -247,3 +250,104 @@ def seconds_to_time(seconds):
         hours, remainder = divmod(time_obj.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return "{:02}:{:02}:{:05.2f}".format(hours, minutes, seconds + time_obj.microseconds / 1000000)
+
+#-----------------------------------
+# <SegmentHistory> weighted calculations
+#-----------------------------------
+
+def get_weighted_average_time(segment_history):
+    sorted_times = [time_to_seconds(real_time) for real_time in segment_history.values() if real_time]
+    sorted_times.sort()
+    
+    # calculate interquartile range (IQR)
+    q1 = np.percentile(sorted_times, 25)
+    q3 = np.percentile(sorted_times, 75)
+    iqr = q3 - q1
+    
+    lower_threshold = q1 - 1.5 * iqr
+    upper_threshold = q3 + 1.5 * iqr
+    
+    filtered_times = [time for time in sorted_times if lower_threshold <= time <= upper_threshold]
+    
+    total_weighted_time = 0.0
+    total_weight = 0.0
+    
+    count = len(filtered_times)
+    for index, time_seconds in enumerate(filtered_times):
+        weight = 0.0
+        if index < 0.40 * count:
+            weight = 0.5
+        elif index < 0.85 * count:
+            weight = 1.0
+        else:
+            weight = 2.0
+            
+        total_weighted_time += weight * time_seconds
+        total_weight += weight
+        
+    if total_weight == 0:
+        return ''
+    
+    weighted_average_time = total_weighted_time / total_weight
+    return seconds_to_time(weighted_average_time)
+
+def get_weighted_std_dev(segment_history):
+    # get all times in seconds for ease of maths
+    times_in_seconds = [time_to_seconds(real_time) for real_time in segment_history.values()]
+    
+    # get IQR to find/remove outliers
+    q1 = np.percentile(times_in_seconds, 25)
+    q3 = np.percentile(times_in_seconds, 75)
+    iqr = q3 - q1
+    lower_threshold = q1 - 1.5 * iqr
+    upper_threshold = q3 + 1.5 * iqr
+    
+    # remove the outliers
+    filtered_times = [time for time in times_in_seconds if lower_threshold <= time <= upper_threshold]
+
+    # get the average
+    mean_time = sum(filtered_times) / len(filtered_times)
+    
+    # get squared deltas from mean
+    squared_deltas = [(time - mean_time) ** 2 for time in filtered_times]
+    
+    # get mean of squared deltas
+    variance = sum(squared_deltas) / len(squared_deltas)
+    
+    # take the square root to get std dev
+    std_dev_seconds = sqrt(variance)
+    
+    return seconds_to_time(std_dev_seconds)
+
+def get_weighted_median_time(segment_history):
+    time_list = [time_to_seconds(real_time) for real_time in segment_history.values() if real_time]
+
+    # get IQR to find/remove outliers
+    q1 = np.percentile(time_list, 25)
+    q3 = np.percentile(time_list, 75)
+    iqr = q3 - q1
+    lower_threshold = q1 - 1.5 * iqr
+    upper_threshold = q3 + 1.5 * iqr
+    
+    # remove the outliers
+    filtered_times = [time for time in time_list if lower_threshold <= time <= upper_threshold]
+
+    # calculate median
+    n = len(filtered_times)
+    if n == 0:
+        return ''
+    
+    filtered_times.sort()
+
+    # even number of times
+    if n % 2 == 0:
+        middle1 = filtered_times[n // 2 - 1]
+        middle2 = filtered_times[n // 2]
+        median_in_seconds = (middle1 + middle2) / 2
+    # odd number of times
+    else:
+        median_in_seconds = filtered_times[n // 2]
+
+    return seconds_to_time(median_in_seconds)
+
+

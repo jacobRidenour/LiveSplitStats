@@ -25,23 +25,23 @@ def get_segment_duration_graphs(split_data, folder_path):
         segment_times = [time_to_seconds(value) for value in current_segment.segment_history.values()]
         
         # Calculate the 90th percentile
-        #percentile_90 = np.percentile(segment_times, 90)
-        average_time = time_to_seconds(get_weighted_average_time(current_segment.segment_history))
+        #percentile_97 = np.percentile(segment_times, 97)
+        #average_time = time_to_seconds(get_weighted_average_time(current_segment.segment_history))
         
         # Filter out values beyond the 90th percentile
-        filtered_segment_times = [time for time in segment_times if time <= 1.75 * average_time]
+        #filtered_segment_times = [time for time in segment_times if time <= percentile_97]
         
-        segment_id = [int(key) for key in current_segment.segment_history.keys()][:len(filtered_segment_times)]
+        segment_id = [int(key) for key in current_segment.segment_history.keys()][:len(segment_times)]
         
         plt.rcParams['figure.figsize'] = (10.67, 8)  # roughly 1024x768 at 96 dpi
         plt.figure()
-        plt.plot(segment_id, filtered_segment_times)
+        plt.plot(segment_id, segment_times)
         plt.title(current_segment.name)
         plt.xlabel('Run')
         plt.ylabel('Segment Time')
         
         # convert segment times to timedelta objects
-        segment_time_as_timedelta = [timedelta(seconds=time) for time in filtered_segment_times]
+        segment_time_as_timedelta = [timedelta(seconds=time) for time in segment_times]
         plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: str(timedelta(seconds=x)))) 
         

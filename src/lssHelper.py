@@ -229,6 +229,36 @@ def get_segment_sum(segment_history):
 
     return total
 
+def get_inflated_time_ids(previous_segment_history, segment_history):
+    inflated_time_ids = []
+
+    segment_times = [time_to_seconds(real_time) for real_time in segment_history.values()]
+    mean_time = get_weighted_average_time(segment_history)
+    std_dev = get_weighted_std_dev(segment_history)
+
+    # get z scores for each time
+    z_scores = [(time_to_seconds(real_time) - time_to_seconds(mean_time)) / time_to_seconds(std_dev) for real_time in segment_history.values()]
+
+    # set a threshold - 3?
+    threshold_score = 3.5
+    
+    # find inflated times based on z_score
+    for index, time_id in enumerate(segment_history.keys()):
+        if z_scores[index] > threshold_score:
+            inflated_time_ids.append(time_id)
+
+    
+    # previous_best_time_id, previous_best_time = get_best_time(previous_segment_history)
+    # current_best_time_id, current_best_time = get_best_time(segment_history)
+    
+    # inflated_threshold = time_to_seconds(previous_best_time) + time_to_seconds(current_best_time)
+    
+    # for time_id, real_time in segment_history.items():
+    #     if time_to_seconds(real_time) > inflated_threshold:
+    #         inflated_time_ids.append(time_id)
+            
+    return inflated_time_ids
+
 #-----------------------------------
 # Convert between RealTime and seconds
 #-----------------------------------
@@ -255,6 +285,7 @@ def seconds_to_time(seconds):
 # <SegmentHistory> weighted calculations
 #-----------------------------------
 
+# calculates a weighted average (looking at all runs)
 def get_weighted_average_time(segment_history):
     sorted_times = [time_to_seconds(real_time) for real_time in segment_history.values() if real_time]
     sorted_times.sort()
@@ -263,6 +294,11 @@ def get_weighted_average_time(segment_history):
     q1 = np.percentile(sorted_times, 25)
     q3 = np.percentile(sorted_times, 75)
     iqr = q3 - q1
+    
+    # handle the data being heavily skewed in one half
+    median = np.percentile(sorted_times, 50)
+    #skewness = skew(sorted_times)
+    #threshold_multiplier = 1.5 + 0.5 * skewness
     
     lower_threshold = q1 - 1.5 * iqr
     upper_threshold = q3 + 1.5 * iqr
@@ -275,10 +311,10 @@ def get_weighted_average_time(segment_history):
     count = len(filtered_times)
     for index, time_seconds in enumerate(filtered_times):
         weight = 0.0
-        if index < 0.40 * count:
-            weight = 0.5
+        if index < 0.50 * count:
+            weight = 0.1
         elif index < 0.85 * count:
-            weight = 1.0
+            weight = 0.5
         else:
             weight = 2.0
             
@@ -291,33 +327,25 @@ def get_weighted_average_time(segment_history):
     weighted_average_time = total_weighted_time / total_weight
     return seconds_to_time(weighted_average_time)
 
+# calculates a weighted standard deviation (looking at the most recent 50% of runs)
 def get_weighted_std_dev(segment_history):
-    # get all times in seconds for ease of maths
     times_in_seconds = [time_to_seconds(real_time) for real_time in segment_history.values()]
+    times_in_seconds = times_in_seconds[int(len(times_in_seconds)/2):]
     
-    # get IQR to find/remove outliers
-    q1 = np.percentile(times_in_seconds, 25)
-    q3 = np.percentile(times_in_seconds, 75)
-    iqr = q3 - q1
-    lower_threshold = q1 - 1.5 * iqr
-    upper_threshold = q3 + 1.5 * iqr
+    mean_time = np.mean(times_in_seconds)
+    std_dev = np.std(times_in_seconds)
+    z_scores = [(time - mean_time) / std_dev for time in times_in_seconds]
     
-    # remove the outliers
-    filtered_times = [time for time in times_in_seconds if lower_threshold <= time <= upper_threshold]
-
-    # get the average
-    mean_time = sum(filtered_times) / len(filtered_times)
+    z_score_threshold = 2.0
     
-    # get squared deltas from mean
-    squared_deltas = [(time - mean_time) ** 2 for time in filtered_times]
+    filtered_times = [time for time, z_score in zip(times_in_seconds, z_scores) if abs(z_score) <= z_score_threshold]
     
-    # get mean of squared deltas
-    variance = sum(squared_deltas) / len(squared_deltas)
+    count = len(filtered_times)
+    weights = [0.1 if index < 0.5 * count else (0.5 if index < 0.85 * count else 2.0) for index in range(count)]
     
-    # take the square root to get std dev
-    std_dev_seconds = sqrt(variance)
+    weighted_std_dev_seconds = np.sqrt(np.average(np.square(filtered_times - mean_time), weights=weights))
     
-    return seconds_to_time(std_dev_seconds)
+    return seconds_to_time(weighted_std_dev_seconds)
 
 def get_weighted_median_time(segment_history):
     time_list = [time_to_seconds(real_time) for real_time in segment_history.values() if real_time]

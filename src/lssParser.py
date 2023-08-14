@@ -47,6 +47,7 @@ def read_lss_file(root, folder_path):
     #   <Time id="number">
     #    <RealTime>
     file_segments = root.findall('.//Segment')
+    previous_segment_history = None
     for index, segment in enumerate(file_segments, start=1):
         # initialize segment_data() struct to hold segment info
         current_segment = segment_data()
@@ -82,6 +83,16 @@ def read_lss_file(root, folder_path):
         empty_keys = [key for key, value in segment_history.items() if not value]
         for key in empty_keys:
             segment_history.pop(key)
+                
+        # check previous segment history and account for inflated times due to skipping the previous split
+        if previous_segment_history is not None:
+            inflated_time_ids = get_inflated_time_ids(previous_segment_history, segment_history)
+            if len(inflated_time_ids) > 0:
+                for id in inflated_time_ids:
+                    if id not in previous_segment_history:
+                        segment_history.pop(id)
+                        
+        previous_segment_history = segment_history.copy()
         
         current_segment.segment_history = segment_history
         

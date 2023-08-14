@@ -10,7 +10,7 @@ from lssGraphs import *
 
 # TODO:
 # add .csv output with options
-# properly account for skipped splits
+# improve decent segment calculation
 
 # prompts the user for a .lss file, if it's valid outputs text files, graphs, and (TODO: csv)
 def main():
@@ -36,7 +36,7 @@ def main():
                 if result:
                     # get the name of the file & create a folder for output
                     file_name = os.path.splitext(os.path.basename(lss_file))[0]
-                    folder_path = os.path.join(os.getcwd(), file_name)
+                    folder_path = os.path.join(os.getcwd(), 'output\\' + file_name)
                     os.makedirs(folder_path, exist_ok=True)
                     print('Created directory', folder_path)
                     

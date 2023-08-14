@@ -2,6 +2,12 @@
 
 Reports some information and statistics gleaned from [LiveSplit](http://livesplit.org/) split (.lss) files. Only accounts for RTA (for now).
 
+Much of this information is already parsed or calculated by LiveSplit, but this also offers:
+* A visualization of run duration over time (much like [splits.io](https://splits.io))
+* A visualization of segment duration over time
+* A visualization of time save in your PB
+* A visualization of standard deviation for each segment
+
 Once a file is read, the script will:
 
 1. Create a folder in the parent directory of the script to store the results.
@@ -27,7 +33,7 @@ Segment information
 * Calculations:
     * Average time (weighted)
     * Median time (weighted)
-    * Standard deviation (weighted)
+    * Standard deviation (weighted with a focus on most recent 50% of times)
     * Percentage of runs that completed that segment
 
 Other information

@@ -202,22 +202,35 @@ def get_above_average_rate(segment_history):
     if segment_history is None:
         return 0
     
-    average_time_seconds = time_to_seconds(get_weighted_average_time(segment_history))
-    if not average_time_seconds:
+    segment_times = [time_to_seconds(real_time) for real_time in segment_history.values()]
+    
+    if not segment_times:
         return 0
     
-    above_average_count = 0
+    percentile_75 = np.percentile(segment_times, 75)
     
-    for real_time in segment_history.values():
-        real_time_seconds = time_to_seconds(real_time)
-        if real_time_seconds < average_time_seconds:
-            above_average_count += 1
+    above_average_count = sum(time < percentile_75 for time in segment_times)
+    segment_count = len(segment_times)
     
-    segment_count = len(segment_history)
+    decent_rate = (above_average_count / segment_count) * 100
     
-    decent = (above_average_count / segment_count)*100
+        
+    # average_time_seconds = time_to_seconds(get_weighted_average_time(segment_history))
+    # if not average_time_seconds:
+    #     return 0
     
-    return '{:.2f}%'.format(decent)
+    # above_average_count = 0
+    
+    # for real_time in segment_history.values():
+    #     real_time_seconds = time_to_seconds(real_time)
+    #     if real_time_seconds < average_time_seconds:
+    #         above_average_count += 1
+    
+    # segment_count = len(segment_history)
+    
+    # decent = (above_average_count / segment_count)*100
+    
+    return '{:.2f}%'.format(decent_rate)
 
 # return total time spend on a given segment
 def get_segment_sum(segment_history):

@@ -23,14 +23,7 @@ def get_segment_duration_graphs(split_data, folder_path):
             continue
         
         segment_times = [time_to_seconds(value) for value in current_segment.segment_history.values()]
-        
-        # Calculate the 90th percentile
-        #percentile_97 = np.percentile(segment_times, 97)
-        #average_time = time_to_seconds(get_weighted_average_time(current_segment.segment_history))
-        
-        # Filter out values beyond the 90th percentile
-        #filtered_segment_times = [time for time in segment_times if time <= percentile_97]
-        
+                
         segment_id = [int(key) for key in current_segment.segment_history.keys()][:len(segment_times)]
         
         plt.rcParams['figure.figsize'] = (10.67, 8)  # roughly 1024x768 at 96 dpi

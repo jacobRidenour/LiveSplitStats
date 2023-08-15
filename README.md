@@ -12,7 +12,7 @@ Once a file is read, the script will:
 
 1. Create a folder in the parent directory of the script to store the results.
 2. Write all the parsed information to a .txt file
-3. Output graphs showing various statistics (std deviation, above average rate, segment duration over time)
+3. Output graphs showing various statistics (std deviation, decent segment rate, segment duration over time)
 4. Export PB segment times, gold times, split times to a CSV, and history for each segment to CSVs
 
 Parsed information

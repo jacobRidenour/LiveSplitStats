@@ -44,7 +44,7 @@ Other information
 Graphs
 * Line graph: segment duration over time for each segment
 * Bar graph: standard deviation for each segment
-* Bar graph: percentage of decent segments (within 1% of gold)
+* Bar graph: percentage of decent segments (within 3% of gold)
 * Bar graph: possible time save in PB
 * Line graph: Run duration over time
 

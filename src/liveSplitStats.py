@@ -1,5 +1,6 @@
 # Imports
 import os
+import re
 
 # Dependencies
 import matplotlib
@@ -8,11 +9,7 @@ import matplotlib
 from lssParser import *
 from lssGraphs import *
 
-# TODO:
-# add .csv output with options
-# improve decent segment calculation
-
-# prompts the user for a .lss file, if it's valid outputs text files, graphs, and (TODO: csv)
+# prompts the user for a .lss file, if it's valid outputs text files, graphs, and CSVs
 def main():
     matplotlib.use('TkAgg')
     while True:
@@ -45,7 +42,10 @@ def main():
                     write_split_stats(split_data, folder_path, file_name)
                     write_graphs(split_data, folder_path)
                     
-                    #write_csv(split_data, folder_path)
+                    folder_path = os.path.join(os.getcwd(), 'output\\' + file_name + '\\csv\\')
+                    os.makedirs(folder_path, exist_ok=True)
+                    print('Created directory', folder_path)
+                    write_csvs(split_data, folder_path, file_name)
                 else:
                     print('Failed to open', lss_file)
                     
@@ -66,8 +66,9 @@ def write_split_stats(split_data, folder_path, file_name):
         file.write(f'Total Playtime: {split_data.total_playtime}\n')
         file.write('\nSegments\n')
         
-        file.write('\nNOTE: averages, medians, and standard deviations are more heavily weighted towards recent runs.\n')
-        file.write('\nNOTE: results may be incorrect if splits were rearranged/changed.\n')
+        file.write('\nNOTE: averages and medians are more heavily weighted towards recent runs.\n')
+        file.write('NOTE: standard deviation weighted based on most recent 50% of runs only.\n')
+        file.write('NOTE: results may be incorrect if splits were rearranged/changed.\n\n')
         
         for index, current_segment in enumerate(split_data.segments, start=1):
             file.write(f'{index}. {current_segment.name.encode("utf-8").decode("utf-8")}\n')
@@ -80,7 +81,7 @@ def write_split_stats(split_data, folder_path, file_name):
             file.write(f'    - Std Deviation:      {current_segment.stats.stdev}\n')
             file.write(f'    - Possible Time Save: {current_segment.possible_time_save}\n')
             file.write(f'    - This segment is completed {current_segment.stats.finished_rate} of the time.\n')
-            file.write(f'    - This segment is above average {current_segment.stats.decent_rate} of the time.\n\n')
+            file.write(f'    - This segment is within 3% of gold {current_segment.stats.decent_rate} of the time.\n\n')
             
     print('Successfully output .lss data to', file_path)
 
@@ -104,6 +105,32 @@ def write_graphs(split_data, folder_path):
     # list to store the other graphs
     get_graphs(split_data, segment_names, folder_path)
     print('Successfully output other graphs to', folder_path)
+
+# Creates CSVs:
+# 1. CSV for PB stats - segment time, gold time, split time
+# 3. CSV for each segment: entire segment history
+def write_csvs(split_data, folder_path, file_name):
+    sanitize_filename = lambda filename: re.sub(r'[\/:*?"<>|]', '', filename)
+    
+    file_path = f'{folder_path}\\{file_name}_PB.csv'
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(f'segment,time,gold,split time\n')
+        for index in range(len(split_data.segments)):
+            file.write(f'{split_data.segments[index].name}, {split_data.segments[index].segment_pb}, {split_data.segments[index].segment_gold.time}, {split_data.segments[index].split_time_pb}\n')
+    print('Successfully output PB segments, gold segments, and split times to CSV.')
+    
+    histories = []
+    for index in range(len(split_data.segments)):
+        file_path = f'{folder_path}\\{file_name}_segment_history_{sanitize_filename(split_data.segments[index].name)}.csv'
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(f'attempt,time\n')
+        histories.append(file_path)
+    
+    for index in range(len(histories)):
+        with open(histories[index], 'a', encoding='utf-8') as file:
+            for key, value in split_data.segments[index].segment_history.items():
+                file.write(f'{key}, {value}\n')
+    print('Successfully output segment history to CSV.')
 
 if __name__ == '__main__':
     main()

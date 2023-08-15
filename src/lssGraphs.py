@@ -37,7 +37,7 @@ def get_segment_duration_graphs(split_data, folder_path):
         segment_time_as_timedelta = [timedelta(seconds=time) for time in segment_times]
         plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: str(timedelta(seconds=x)))) 
-        
+
         # store current plot in the dictionary
         title = f'Segment length over time for {current_segment.name}'
         graphs_segment_duration[title] = plt.gcf()
@@ -91,15 +91,15 @@ def get_graphs(split_data, segment_names, folder_path):
         # add to graphs list
         graphs.append(plt.gcf())
     
-    # Prepare graph: percentage of above average segments
+    # Prepare graph: percentage of decent segments (within x% of gold)
     above_average_percentages = [float(segment.stats.decent_rate.rstrip('%')) for segment in split_data.segments]
     
     for _ in range(1):
         plt.figure()
         plt.bar(segment_names, above_average_percentages, color='green')
-        plt.title('Rate of Above Average Segments')
+        plt.title('Decent Segments - Within 3% of Gold')
         plt.xlabel('Segment')
-        plt.ylabel('Above Average Rate')
+        plt.ylabel('Percent')
         plt.rcParams['figure.figsize'] = (10.67, 8) # roughly 1024x768 at 96 dpi
         
         for i, percentage in enumerate(above_average_percentages):
@@ -107,6 +107,7 @@ def get_graphs(split_data, segment_names, folder_path):
             
         plt.xticks(rotation=90)
         plt.tight_layout()
+        plt.gca().set_ylim(0, 100)
         
         graphs.append(plt.gcf())
 

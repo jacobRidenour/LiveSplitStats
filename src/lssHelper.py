@@ -79,7 +79,7 @@ def get_total_playtime(attempt_history):
         
         total_time += time_seconds
         
-    return seconds_to_time(total_time)
+    return seconds_to_playtime(total_time)
 
 # get time and ID for all finished runs
 def get_finished_runs(attempt_history):
@@ -197,22 +197,23 @@ def get_percent_finished(attempts, segment_history):
     finished_percent = (completed_segments/attempts)*100
     return '{:.2f}%'.format(finished_percent)
 
-# count number of above average splits
-def get_above_average_rate(segment_history):
+# count number of splits within 3% of gold
+def get_above_average_rate(segment_history, gold):
     if segment_history is None:
         return 0
     
     segment_times = [time_to_seconds(real_time) for real_time in segment_history.values()]
+    gold_time = time_to_seconds(gold)
     
     if not segment_times:
         return 0
     
-    percentile_75 = np.percentile(segment_times, 75)
+    decent_threshold = 0.03 * gold_time
     
-    above_average_count = sum(time < percentile_75 for time in segment_times)
+    decent_count = sum(time - decent_threshold <= gold_time for time in segment_times)
     segment_count = len(segment_times)
     
-    decent_rate = (above_average_count / segment_count) * 100
+    decent_rate = (decent_count / segment_count) * 100
     
         
     # average_time_seconds = time_to_seconds(get_weighted_average_time(segment_history))
@@ -293,6 +294,12 @@ def seconds_to_time(seconds):
         hours, remainder = divmod(time_obj.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return "{:02}:{:02}:{:05.2f}".format(hours, minutes, seconds + time_obj.microseconds / 1000000)
+
+def seconds_to_playtime(seconds):
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    return f'{int(days)}:{int(hours):02d}:{int(minutes):02d}:{seconds:.3f}'
 
 #-----------------------------------
 # <SegmentHistory> weighted calculations

@@ -13,7 +13,7 @@ Once a file is read, the script will:
 1. Create a folder in the parent directory of the script to store the results.
 2. Write all the parsed information to a .txt file
 3. Output graphs showing various statistics (std deviation, above average rate, segment duration over time)
-4. (TODO) Export segment times (in seconds) to a .csv
+4. Export PB segment times, gold times, split times to a CSV, and history for each segment to CSVs
 
 Parsed information
 * Game Name
@@ -44,7 +44,7 @@ Other information
 Graphs
 * Line graph: segment duration over time for each segment
 * Bar graph: standard deviation for each segment
-* Bar graph: percentage of above average segments
+* Bar graph: percentage of decent segments (within 1% of gold)
 * Bar graph: possible time save in PB
 * Line graph: Run duration over time
 
@@ -62,5 +62,4 @@ Enter the path to your .lss file. The script will do the rest.
 
 # Known Issues
 
-Does not properly account for times when splits are skipped. Currently for segment graphs will filter segments that are >= 1.75x the average time for that segment (not good for short splits)
-Above average calculation probably needs adjustment.
+If your splits have been heavily rearranged/changed over time, results are unlikely to be accurate.

@@ -144,12 +144,12 @@ def read_lss_file(root, folder_path):
         current_segment.stats.finished_rate = get_percent_finished(split_file.runs_started, segment_history)
         
         # percentage that this segment was above average
-        current_segment.stats.decent_rate = get_above_average_rate(segment_history)
+        current_segment.stats.decent_rate = get_above_average_rate(segment_history, current_segment.segment_gold.time)
 
         split_file.segments.append(current_segment)
     
     
     split_file.sob = seconds_to_time(sum_of_best)
-    split_file.total_runtime = seconds_to_time(total_runtime)
+    split_file.total_runtime = seconds_to_playtime(total_runtime)
     return split_file
     

@@ -58,6 +58,8 @@ Installation:
 
 # Usage
 
+Run the script liveSplitStats.py.
+
 Enter the path to your .lss file. The script will do the rest.
 
 # Known Issues

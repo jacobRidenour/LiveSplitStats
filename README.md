@@ -62,6 +62,7 @@ Run the script liveSplitStats.py.
 
 Enter the path to your .lss file. The script will do the rest.
 
-# Known Issues
+# Keep in Mind
 
-If your splits have been heavily rearranged/changed over time, results are unlikely to be accurate.
+* Likely to be inaccurate if you've rearranged splits
+* Results are weighted but may be slightly less useful if e.g. you converted your old any% splits to 100% splits or changed a route without changing the splits
